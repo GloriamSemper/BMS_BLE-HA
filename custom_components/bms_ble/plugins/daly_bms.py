@@ -1,6 +1,7 @@
 """Module to support Daly Smart BMS."""
 
 from collections.abc import Callable
+from datetime import datetime as dt
 from typing import Any, Final
 
 from bleak.backends.device import BLEDevice
@@ -31,8 +32,10 @@ class BMS(BaseBMS):
     """Daly Smart BMS class implementation."""
 
     HEAD_READ: Final[bytes] = b"\xD2\x03"
-    CMD_INFO: Final[bytes] = b"\x00\x00\x00\x3E\xD7\xB9"
-    MOS_INFO: Final[bytes] = b"\x00\x3E\x00\x09\xF7\xA3"
+    HEAD_WRITE: Final[bytes] = b"\xD2\x10"
+    BAT_INFO: Final[bytes] = b"\x00\x00\x00\x3E"
+    MOS_INFO: Final[bytes] = b"\x00\x3E\x00\x09"
+    TIME_INFO: Final[bytes] = b"\x00\xD4\x00\x03"
     HEAD_LEN: Final[int] = 3
     CRC_LEN: Final[int] = 2
     MAX_CELLS: Final[int] = 32
@@ -96,6 +99,26 @@ class BMS(BaseBMS):
             ATTR_TEMPERATURE,
         }
 
+    async def _init_connection(self) -> None:
+        """Connect to the BMS and setup notification if not connected."""
+        await super()._init_connection()
+
+        if not self.name.startswith("DL-FB4"):
+            return
+
+        # set timestamp for Bulltron battery
+        ts: dt = dt.now()
+        await self._await_reply(
+            BMS._cmd_frame(
+                BMS.TIME_INFO,
+                bytes(
+                    [ts.year - 2000, ts.month, ts.day, ts.hour, ts.minute, ts.second]
+                ),
+                BMS.HEAD_WRITE,
+            ),
+            False,
+        )
+
     def _notification_handler(self, _sender, data: bytearray) -> None:
         self._log.debug("RX BLE data: %s", data)
 
@@ -120,12 +143,20 @@ class BMS(BaseBMS):
         self._data = data
         self._data_event.set()
 
+    @staticmethod
+    def _cmd_frame(request: bytes, data: bytes = b"", cmd: bytes = HEAD_READ) -> bytes:
+        """Assemble a Daly Smart BMS command frame, default is read."""
+        assert len(request) == 4
+        frame: bytes = cmd + request[0:2] + request[2:4] + data
+        frame += crc_modbus(bytearray(frame)).to_bytes(2, byteorder="little")
+        return frame
+
     async def _async_update(self) -> BMSsample:
         """Update battery status information."""
-        data = {}
+        data: BMSsample = {}
         try:
             # request MOS temperature (possible outcome: response, empty response, no response)
-            await self._await_reply(BMS.HEAD_READ + BMS.MOS_INFO)
+            await self._await_reply(BMS._cmd_frame(BMS.MOS_INFO))
 
             if sum(self._data[BMS.MOS_TEMP_POS :][:2]):
                 self._log.debug("MOS info: %s", self._data)
@@ -142,7 +173,7 @@ class BMS(BaseBMS):
         except TimeoutError:
             self._log.debug("no MOS temperature available.")
 
-        await self._await_reply(BMS.HEAD_READ + BMS.CMD_INFO)
+        await self._await_reply(BMS._cmd_frame(BMS.BAT_INFO))
 
         if len(self._data) != BMS.INFO_LEN:
             self._log.debug("incorrect frame length: %i", len(self._data))
