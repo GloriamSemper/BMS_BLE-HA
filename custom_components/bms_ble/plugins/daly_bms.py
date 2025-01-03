@@ -1,5 +1,6 @@
 """Module to support Daly Smart BMS."""
 
+import asyncio
 from collections.abc import Callable
 from datetime import datetime as dt
 from typing import Any, Final
@@ -105,6 +106,19 @@ class BMS(BaseBMS):
 
         if not self.name.startswith("DL-FB4"):
             return
+
+        await self._await_reply(
+            b"\xa5\x40\x02\x08\x00\x00\x00\x00\x00\x00\x00\x00\xef",
+            normalize_uuid_str("fff2"),
+            False,
+        )
+        await asyncio.sleep(0.1)
+        await self._await_reply(
+            b"\x81\x10\x0f\x05\x00\x01\x00\x00\x05\x59",
+            normalize_uuid_str("fff2"),
+            False,
+        )
+        await asyncio.sleep(0.1)
 
         # set timestamp for Bulltron battery
         ts: dt = dt.now()
