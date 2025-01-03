@@ -176,6 +176,20 @@ ADVERTISEMENTS: Final[list] = [
         ),
         "daly_bms",
     ),
+    (  # source LOG (https://github.com/patman15/BMS_BLE-HA/issues/85)
+        generate_advertisement_data(
+            local_name="DL-FB4C2E0C68F04",
+            manufacturer_data={771: b"\x00\xb4\xc2\xe0\xc6\x8f\x04DL\x00"},
+            service_uuids=[
+                "00001800-0000-1000-8000-00805f9b34fb",
+                "00001801-0000-1000-8000-00805f9b34fb",
+                "0000ff00-0000-1000-8000-00805f9b34fb",
+                "0000fff0-0000-1000-8000-00805f9b34fb",
+            ],
+            rssi=-49,
+        ),
+        "daly_bms",
+    ),
     (  # source nRF (https://github.com/patman15/BMS_BLE-HA/issues/22#issuecomment-2198586195)
         generate_advertisement_data(  # Supervolt battery
             local_name="SX100P-B230201",
