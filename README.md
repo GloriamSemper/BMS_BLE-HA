@@ -156,8 +156,9 @@ Once pairing is done, the integration should automatically detect the BMS.
 1. Check that your BMS type is listed as [supported device](#supported-devices)
 1. Make sure that no other device is connected to the BMS, e.g. app on your phone
 1. Check that your are running the [latest release](https://github.com//patman15/BMS_BLE-HA/releases)  of the integration
-1. Open a [terminal to Home Assistant](https://www.home-assistant.io/common-tasks/supervised/#installing-and-using-the-ssh-add-on) and verify that your BMS is listed in the ouput of the command `bluetoothctl devices`. Try to connect to the BMS using `bluetoothctl connect <MAC>`.
-1. If you use a BT proxy, make sure you have set `active: true` and that you do not exced the [BT proxy limit][btproxy-url] of 3 devices/proxy; check the logs of the proxy if the device is recognized.
+1. Check that your device is detected
+    1. For normal BT adapters: Open a [terminal to Home Assistant](https://www.home-assistant.io/common-tasks/supervised/#installing-and-using-the-ssh-add-on) and verify that your BMS is listed in the ouput of the command `bluetoothctl devices`. Try to connect to the BMS using `bluetoothctl connect <MAC>`.
+    1. If you use a BT proxy: Make sure you have set `active: true` and that you do not exced the [BT proxy limit][btproxy-url] of 3 devices/proxy; check the logs of the proxy (debug level set to `VERY_VERBOSE`) if the device is recognized.
 
 ### In case you have severe troubles
 
