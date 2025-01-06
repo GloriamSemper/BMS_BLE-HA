@@ -6,6 +6,7 @@ from datetime import datetime as dt
 from typing import Any, Final
 
 from bleak.backends.device import BLEDevice
+from bleak.exc import BleakError
 from bleak.uuids import normalize_uuid_str
 
 from custom_components.bms_ble.const import (
@@ -106,6 +107,15 @@ class BMS(BaseBMS):
 
         if not self.name.startswith("DL-FB4"):
             return
+
+        for char in ["fff1", "fff2", "fffa", "fffb", "fff3"]:
+            try:
+                self._log.debug(
+                    "Reading %s: %s", char, await self._client.read_gatt_char(char)
+                )
+            except (BleakError, TimeoutError) as ex:
+                self._log.debug("Exception reading %s: %s", char, ex)
+                continue
 
         await self._await_reply(
             b"\xa5\x40\x02\x08\x00\x00\x00\x00\x00\x00\x00\x00\xef",
