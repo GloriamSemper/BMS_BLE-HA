@@ -101,12 +101,17 @@ class BMS(BaseBMS):
             ATTR_TEMPERATURE,
         }
 
+    def _not_handler(self, _sender, data: bytearray) -> None:
+        self._log.debug("RX BLE data on 2a05: %s", data)
+
     async def _init_connection(self) -> None:
         """Connect to the BMS and setup notification if not connected."""
         await super()._init_connection()
 
         if not self.name.startswith("DL-FB4"):
             return
+
+        await self._client.start_notify("2a05", self._not_handler)
 
         for char in ["ff01", "ff02", "fff1", "fff2", "fffa", "fffb", "fff3"]:
             try:
