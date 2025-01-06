@@ -108,7 +108,7 @@ class BMS(BaseBMS):
         if not self.name.startswith("DL-FB4"):
             return
 
-        for char in ["fff1", "fff2", "fffa", "fffb", "fff3"]:
+        for char in ["ff01", "ff02", "fff1", "fff2", "fffa", "fffb", "fff3"]:
             try:
                 self._log.debug(
                     "Reading %s: %s", char, await self._client.read_gatt_char(char)
