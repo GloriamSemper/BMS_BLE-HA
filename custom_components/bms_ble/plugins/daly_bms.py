@@ -1,12 +1,13 @@
 """Module to support Daly Smart BMS."""
 
-import asyncio
+#import asyncio
 from collections.abc import Callable
 from datetime import datetime as dt
 from typing import Any, Final
 
 from bleak.backends.device import BLEDevice
-from bleak.exc import BleakError
+
+#from bleak.exc import BleakError
 from bleak.uuids import normalize_uuid_str
 
 from custom_components.bms_ble.const import (
@@ -101,8 +102,8 @@ class BMS(BaseBMS):
             ATTR_TEMPERATURE,
         }
 
-    def _not_handler(self, _sender, data: bytearray) -> None:
-        self._log.debug("RX BLE data on 2a05: %s", data)
+    # def _not_handler(self, _sender, data: bytearray) -> None:
+    #     self._log.debug("RX BLE data on 2a05: %s", data)
 
     async def _init_connection(self) -> None:
         """Connect to the BMS and setup notification if not connected."""
@@ -111,17 +112,17 @@ class BMS(BaseBMS):
         if not self.name.startswith("DL-FB4"):
             return
 
-        await self._client.start_notify("2a05", self._not_handler)
+        # await self._client.start_notify("2a05", self._not_handler)
 
-        for char in ["ff01", "ff02", "fff1", "fff2", "fffa", "fffb", "fff3"]:
-            try:
-                self._log.debug(
-                    "Reading %s: %s", char, await self._client.read_gatt_char(char)
-                )
-                asyncio.sleep(0.2)
-            except (BleakError, TimeoutError) as ex:
-                self._log.debug("Exception reading %s: %s", char, ex)
-                continue
+        # for char in ["ff01", "ff02", "fff1", "fff2", "fffa", "fffb", "fff3"]:
+        #     try:
+        #         self._log.debug(
+        #             "Reading %s: %s", char, await self._client.read_gatt_char(char)
+        #         )
+        #         asyncio.sleep(0.3)
+        #     except (BleakError, TimeoutError) as ex:
+        #         self._log.debug("Exception reading %s: %s", char, ex)
+        #         continue
 
         # await self._await_reply(
         #     b"\xa5\x40\x02\x08\x00\x00\x00\x00\x00\x00\x00\x00\xef",
@@ -153,8 +154,12 @@ class BMS(BaseBMS):
 
         if (
             len(data) < BMS.HEAD_LEN
-            or data[0:2] != BMS.HEAD_READ
-            or int(data[2]) + 1 != len(data) - len(BMS.HEAD_READ) - BMS.CRC_LEN
+            or (data[0:2] != BMS.HEAD_READ and data[0:2] != BMS.HEAD_WRITE)
+            or (
+                data[0:2] == BMS.HEAD_READ
+                and int(data[2]) + 1 != len(data) - len(BMS.HEAD_READ) - BMS.CRC_LEN
+            )
+            or (data[0:2] == BMS.HEAD_WRITE and len(data) != 8)
         ):
             self._log.debug("response data is invalid")
             return
