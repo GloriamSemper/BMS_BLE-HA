@@ -1,6 +1,6 @@
 """Module to support Daly Smart BMS."""
 
-#import asyncio
+import asyncio
 from collections.abc import Callable
 from datetime import datetime as dt
 from typing import Any, Final
@@ -118,6 +118,7 @@ class BMS(BaseBMS):
                 self._log.debug(
                     "Reading %s: %s", char, await self._client.read_gatt_char(char)
                 )
+                asyncio.sleep(0.2)
             except (BleakError, TimeoutError) as ex:
                 self._log.debug("Exception reading %s: %s", char, ex)
                 continue
@@ -145,7 +146,6 @@ class BMS(BaseBMS):
                 ),
                 BMS.HEAD_WRITE,
             ),
-            False,
         )
 
     def _notification_handler(self, _sender, data: bytearray) -> None:
