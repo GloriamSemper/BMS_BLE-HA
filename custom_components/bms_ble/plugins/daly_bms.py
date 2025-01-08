@@ -1,13 +1,13 @@
 """Module to support Daly Smart BMS."""
 
-#import asyncio
+# import asyncio
 from collections.abc import Callable
 from datetime import datetime as dt
 from typing import Any, Final
 
 from bleak.backends.device import BLEDevice
 
-#from bleak.exc import BleakError
+# from bleak.exc import BleakError
 from bleak.uuids import normalize_uuid_str
 
 from custom_components.bms_ble.const import (
@@ -152,26 +152,24 @@ class BMS(BaseBMS):
     def _notification_handler(self, _sender, data: bytearray) -> None:
         self._log.debug("RX BLE data: %s", data)
 
-        if (
-            len(data) < BMS.HEAD_LEN
-            or (data[0:2] != BMS.HEAD_READ and data[0:2] != BMS.HEAD_WRITE)
-            or (
-                data[0:2] == BMS.HEAD_READ
-                and int(data[2]) + 1 != len(data) - len(BMS.HEAD_READ) - BMS.CRC_LEN
-            )
-            or (data[0:2] == BMS.HEAD_WRITE and len(data) != 8)
-        ):
-            self._log.debug("response data is invalid")
+        if not data.startswith((BMS.HEAD_READ, BMS.HEAD_WRITE)):
+            self._log.debug("invalid response header")
             return
 
-        crc: Final = crc_modbus(data[:-2])
+        if (
+            data.startswith(BMS.HEAD_READ)
+            and int(data[2]) + 1 != len(data) - len(BMS.HEAD_READ) - BMS.CRC_LEN
+        ) or (data.startswith(BMS.HEAD_WRITE) and len(data) != 8):
+            self._log.debug("invalid message length (%i)", len(data))
+            return
+
+        crc: Final[int] = crc_modbus(data[:-2])
         if crc != int.from_bytes(data[-2:], byteorder="little"):
             self._log.debug(
                 "invalid checksum 0x%X != 0x%X",
                 int.from_bytes(data[-2:], byteorder="little"),
                 crc,
             )
-            self._data.clear()
             return
 
         self._data = data

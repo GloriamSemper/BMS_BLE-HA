@@ -184,6 +184,16 @@ async def test_too_short_frame(monkeypatch) -> None:
             "wrong CRC",
         ),
         (bytearray(b"\x00"), "too short"),
+        (
+            bytearray(
+                b"\xd2\x03\x10\x10\x1f\x10\x29\x10\x33\x10\x3d\x00\x00\x00\x00\x00\x00"
+            ),
+            "wrong length read reply",
+        ),
+        (
+            bytearray(b"\xd2\x10\x10\x10\x1f\x10\x29\x10\x33"),
+            "wrong length write reply",
+        ),
     ],
     ids=lambda param: param[1],
 )
