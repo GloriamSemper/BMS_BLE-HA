@@ -1,6 +1,6 @@
 """Module to support Daly Smart BMS."""
 
-# import asyncio
+import asyncio
 from collections.abc import Callable
 from datetime import datetime as dt
 from typing import Any, Final
@@ -148,6 +148,7 @@ class BMS(BaseBMS):
                 BMS.HEAD_WRITE,
             ),
         )
+        await asyncio.sleep(2.0) # give BMS time to digest write
 
     def _notification_handler(self, _sender, data: bytearray) -> None:
         self._log.debug("RX BLE data: %s", data)
