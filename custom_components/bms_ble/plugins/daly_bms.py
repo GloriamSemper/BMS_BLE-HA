@@ -6,8 +6,7 @@ from datetime import datetime as dt
 from typing import Any, Final
 
 from bleak.backends.device import BLEDevice
-
-# from bleak.exc import BleakError
+from bleak.exc import BleakError
 from bleak.uuids import normalize_uuid_str
 
 from custom_components.bms_ble.const import (
@@ -102,8 +101,8 @@ class BMS(BaseBMS):
             ATTR_TEMPERATURE,
         }
 
-    # def _not_handler(self, _sender, data: bytearray) -> None:
-    #     self._log.debug("RX BLE data on 2a05: %s", data)
+    def _not_handler(self, _sender, data: bytearray) -> None:
+        self._log.debug("RX BLE data on 2a05: %s", data)
 
     async def _init_connection(self) -> None:
         """Connect to the BMS and setup notification if not connected."""
@@ -112,17 +111,18 @@ class BMS(BaseBMS):
         if not self.name.startswith("DL-FB4"):
             return
 
-        # await self._client.start_notify("2a05", self._not_handler)
+        self._log.debug("Bulltron V9.1.1")
+        await self._client.start_notify("2a05", self._not_handler)
 
-        # for char in ["ff01", "ff02", "fff1", "fff2", "fffa", "fffb", "fff3"]:
-        #     try:
-        #         self._log.debug(
-        #             "Reading %s: %s", char, await self._client.read_gatt_char(char)
-        #         )
-        #         asyncio.sleep(0.3)
-        #     except (BleakError, TimeoutError) as ex:
-        #         self._log.debug("Exception reading %s: %s", char, ex)
-        #         continue
+        for char in ["ff01", "ff02", "fff1", "fff2", "fffa", "fffb", "fff3"]:
+            try:
+                self._log.debug(
+                    "Reading %s: %s", char, await self._client.read_gatt_char(char)
+                )
+                asyncio.sleep(0.3)
+            except (BleakError, TimeoutError) as ex:
+                self._log.debug("Exception reading %s: %s", char, ex)
+                continue
 
         # await self._await_reply(
         #     b"\xa5\x40\x02\x08\x00\x00\x00\x00\x00\x00\x00\x00\xef",
@@ -148,7 +148,7 @@ class BMS(BaseBMS):
                 BMS.HEAD_WRITE,
             ),
         )
-        await asyncio.sleep(2.0) # give BMS time to digest write
+        await asyncio.sleep(2.0)  # give BMS time to digest write
 
     def _notification_handler(self, _sender, data: bytearray) -> None:
         self._log.debug("RX BLE data: %s", data)
