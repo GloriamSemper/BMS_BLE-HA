@@ -106,20 +106,31 @@ class BMS(BaseBMS):
 
     async def _init_connection(self) -> None:
         """Connect to the BMS and setup notification if not connected."""
-        await super()._init_connection()
-
         if not self.name.startswith("DL-FB4"):
+            await super()._init_connection()
             return
 
-        self._log.debug("Bulltron V9.1.1")
+        self._log.debug("Bulltron V10.1.1")
         await self._client.start_notify("2a05", self._not_handler)
 
-        for char in ["ff01", "ff02", "fff1", "fff2", "fffa", "fffb", "fff3"]:
+        for char in ["ff01", "ff02"]:
             try:
                 self._log.debug(
                     "Reading %s: %s", char, await self._client.read_gatt_char(char)
                 )
-                asyncio.sleep(0.3)
+                await asyncio.sleep(0.1)
+            except (BleakError, TimeoutError) as ex:
+                self._log.debug("Exception reading %s: %s", char, ex)
+                continue
+
+        await super()._init_connection()
+
+        for char in ["fff1", "fff2", "fffa", "fffb", "fff3"]:
+            try:
+                self._log.debug(
+                    "Reading %s: %s", char, await self._client.read_gatt_char(char)
+                )
+                await asyncio.sleep(0.1)
             except (BleakError, TimeoutError) as ex:
                 self._log.debug("Exception reading %s: %s", char, ex)
                 continue
