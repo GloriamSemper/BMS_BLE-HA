@@ -91,6 +91,14 @@ class BMS(BaseBMS):
             }
         )  # calculate further values from BMS provided set ones
 
+    async def _init_connection(self) -> None:
+        """Connect to the BMS and setup notification if not connected."""
+        await super()._init_connection()
+
+        # query date and basic info to wake BMS
+        await self._await_reply(BMS._CMD_PRE + BMS._CMD_BI)
+        await self._await_reply(BMS._CMD_PRE + BMS._CMD_DT)
+
     def _notification_handler(
         self, _sender: BleakGATTCharacteristic, data: bytearray
     ) -> None:
