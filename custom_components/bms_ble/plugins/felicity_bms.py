@@ -48,7 +48,7 @@ class BMS(BaseBMS):
         (ATTR_BATTERY_LEVEL, "BatsocList", lambda x: float(x[0][0] / 100)),
     ]
 
-    def __init__(self, ble_device: BLEDevice, reconnect: bool = False) -> None:
+    def __init__(self, ble_device: BLEDevice, reconnect: bool = True) -> None:
         """Initialize BMS."""
         super().__init__(__name__, ble_device, reconnect)
         self._data_final: dict = {}
@@ -66,7 +66,10 @@ class BMS(BaseBMS):
     @staticmethod
     def uuid_services() -> list[str]:
         """Return list of 128-bit UUIDs of services required by BMS."""
-        return [normalize_uuid_str("6e6f736a-4643-4d44-8fa9-0fafd005e455")]
+        return [
+            normalize_uuid_str("6e6f736a-4643-4d44-8fa9-0fafd005e455"),
+            normalize_uuid_str("7362646d-1b0a-2908-0706-052403020101"),
+        ]
 
     @staticmethod
     def uuid_rx() -> str:
