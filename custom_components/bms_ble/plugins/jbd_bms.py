@@ -74,6 +74,7 @@ class BMS(BaseBMS):
                 "LT40AH",  # LionTron
                 "PKT*",  # Perfektium
                 "gokwh*",
+                "OGR-*", # Ogrphy batteries
             )
         ] + [
             {
