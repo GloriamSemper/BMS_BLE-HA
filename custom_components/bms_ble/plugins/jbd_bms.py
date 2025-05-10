@@ -76,6 +76,7 @@ class BMS(BaseBMS):
                 "PKT*",  # Perfektium
                 "gokwh*",
                 "ECO????", # ECO-WORTHY
+                "OGR-*", # Ogrphy Batteries
             )
         ] + [
             {
